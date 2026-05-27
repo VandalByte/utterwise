@@ -1,0 +1,47 @@
+[
+  {
+    "name": "markdown_cleanup",
+    "input": "# Hello **world**",
+    "plain": "Hello world"
+  },
+  {
+    "name": "whitespace_cleanup",
+    "input": "Hello   \n\n   world",
+    "plain": "Hello world"
+  },
+  {
+    "name": "ampersand_symbol",
+    "input": "A & B",
+    "plain": "A and B"
+  },
+  {
+    "name": "percent_symbol",
+    "input": "5%",
+    "plain": "five percent"
+  },
+  {
+    "name": "arrow_symbol",
+    "input": "A → B",
+    "plain": "A to B"
+  },
+  {
+    "name": "contextual_year",
+    "input": "in 2024",
+    "plain": "in twenty twenty four"
+  },
+  {
+    "name": "cardinal",
+    "input": "I have 42 apples",
+    "plain": "I have forty two apples"
+  },
+  {
+    "name": "url",
+    "input": "https://openai.com",
+    "plain": "open ai dot com"
+  },
+  {
+    "name": "email",
+    "input": "hello@example.com",
+    "plain": "hello at example dot com"
+  }
+]
