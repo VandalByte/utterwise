@@ -43,5 +43,55 @@
     "name": "email",
     "input": "hello@example.com",
     "plain": "hello at example dot com"
+  },
+  {
+    "name": "birth_year_context",
+    "input": "Born in 1998",
+    "plain": "Born in nineteen ninety eight"
+  },
+  {
+    "name": "cardinal_value_context",
+    "input": "The value is 1998",
+    "plain": "The value is one thousand nine hundred ninety eight"
+  },
+  {
+    "name": "python_version",
+    "input": "Python 3.12",
+    "plain": "Python three point twelve"
+  },
+  {
+    "name": "prefixed_version",
+    "input": "v3.12",
+    "plain": "v three point twelve"
+  },
+  {
+    "name": "plain_phone",
+    "input": "Call 9876543210",
+    "plain": "Call nine eight seven six five four three two one zero"
+  },
+  {
+    "name": "formatted_phone",
+    "input": "+1-800-555-0100",
+    "plain": "plus one eight zero zero five five five zero one zero zero"
+  },
+  {
+    "name": "short_ordinal",
+    "input": "3rd",
+    "plain": "third"
+  },
+  {
+    "name": "compound_ordinal",
+    "input": "21st",
+    "plain": "twenty first"
+  },
+  {
+    "name": "decimal_percentage",
+    "input": "12.5%",
+    "plain": "twelve point five percent"
+  },
+  {
+    "name": "acronym_map_and_fallback",
+    "input": "NASA and HTTP",
+    "plain": "nasa and H T T P"
   }
 ]

@@ -25,10 +25,11 @@ def test_explain_contains_token_trace() -> None:
 
     assert trace["output"] == "in twenty twenty four"
     assert year_token["type"] == "YEAR"
-    assert year_token["rule"] == "year"
+    assert year_token["rule"] == "year_context"
     assert year_token["confidence"] > 0
     assert year_token["start"] >= 0
     assert year_token["end"] > year_token["start"]
+    assert year_token["candidates"]
 
 
 def test_unknown_policy_raises() -> None:

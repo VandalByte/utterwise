@@ -9,7 +9,12 @@ TOKEN_RE = re.compile(
     r"""
     (?P<url>https?://[^\s]+|www\.[^\s]+)
     |(?P<email>[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,})
+    |(?P<phone>\+?\d[\d().-]{6,}\d)
+    |(?P<percentage>\d+(?:\.\d+)?%)
+    |(?P<version>v\d+(?:\.\d+)+)
+    |(?P<ordinal>\d+(?:st|nd|rd|th))
     |(?P<number>\d+(?:[.,]\d+)*)
+    |(?P<acronym>[A-Z]{2,})
     |(?P<word>[A-Za-z]+(?:'[A-Za-z]+)?)
     |(?P<symbol>[&%+→=×÷])
     |(?P<punctuation>[^\w\s])
@@ -21,7 +26,12 @@ TOKEN_RE = re.compile(
 RAW_TO_TYPE = {
     "url": "URL",
     "email": "EMAIL",
+    "phone": "PHONE",
+    "percentage": "PERCENTAGE",
+    "version": "VERSION",
+    "ordinal": "ORDINAL",
     "number": "CARDINAL",
+    "acronym": "ACRONYM",
     "word": "WORD",
     "symbol": "SYMBOL",
     "punctuation": "PUNCTUATION",

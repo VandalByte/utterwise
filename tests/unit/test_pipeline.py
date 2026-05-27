@@ -20,11 +20,23 @@ def test_tokenizer_preserves_spans() -> None:
 
 
 def test_detection_flags() -> None:
-    text = "Email hello@example.com in 2024."
+    text = "Email hello@example.com in 2024 with NASA."
     tokens = tokenize(preprocess(text))
     flags = detect(text, tokens)
 
     assert flags.email is True
     assert flags.year is True
     assert flags.number is True
+    assert flags.acronym is True
     assert flags.punctuation is True
+
+
+def test_tokenizer_preserves_structured_tokens() -> None:
+    values = [(token.type, token.value) for token in tokenize("v3.12 21st 12.5% NASA")]
+
+    assert values == [
+        ("VERSION", "v3.12"),
+        ("ORDINAL", "21st"),
+        ("PERCENTAGE", "12.5%"),
+        ("ACRONYM", "NASA"),
+    ]

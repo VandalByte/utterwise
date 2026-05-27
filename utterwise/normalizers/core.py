@@ -46,7 +46,7 @@ class NormalizationResult:
                     "confidence": segment.confidence,
                     "start": token.start,
                     "end": token.end,
-                    "candidates": token.candidates,
+                    "candidates": [asdict(candidate) for candidate in token.candidates],
                     "metadata": token.metadata,
                 }
                 for token, segment in zip(self.tokens, self.segments)
