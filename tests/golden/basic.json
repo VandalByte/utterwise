@@ -148,5 +148,25 @@
     "name": "math_subscripts_and_ellipsis",
     "input": "x_1, x_2, \\ldots",
     "plain": "x sub one, x sub two, and so on"
+  },
+  {
+    "name": "temperature_celsius",
+    "input": "25°C",
+    "plain": "twenty five degrees Celsius"
+  },
+  {
+    "name": "temperature_fahrenheit_decimal",
+    "input": "98.6°F",
+    "plain": "ninety eight point six degrees Fahrenheit"
+  },
+  {
+    "name": "temperature_negative_celsius",
+    "input": "It is -3°C today",
+    "plain": "It is minus three degrees Celsius today"
+  },
+  {
+    "name": "temperature_spaced_degree",
+    "input": "The temperature is 25 °C",
+    "plain": "The temperature is twenty five degrees Celsius"
   }
 ]

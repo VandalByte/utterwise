@@ -48,6 +48,8 @@ def _verbalize_one(token: Token, policy: Policy) -> SpokenSegment:
         token.metadata["parser"] = speech.parser
         token.metadata.update(speech.metadata)
         return _segment(token, speech.text, token)
+    if token.type == "TEMPERATURE":
+        return _segment(token, _temperature_to_words(token.value), token)
     if token.type == "CARDINAL":
         return _segment(token, cardinal_to_words(token.value), token)
     if token.type == "YEAR":
@@ -108,6 +110,22 @@ def _flight_no_to_words(value: str) -> str:
     if value.isdigit() and len(value) == 3 and value[1:] != "00":
         return f"{cardinal_to_words(value[0])} {cardinal_to_words(value[1:])}"
     return digits_to_words(value)
+
+
+def _temperature_to_words(value: str) -> str:
+    match = re.fullmatch(r"\s*(-?\d+(?:\.\d+)?)\s*(?:°\s*)?([CF])\s*", value)
+    if not match:
+        return value
+
+    number, unit = match.groups()
+    prefix = ""
+    if number.startswith("-"):
+        prefix = "minus "
+        number = number[1:]
+
+    number_words = decimal_to_words(number) if "." in number else cardinal_to_words(number)
+    unit_words = "Celsius" if unit == "C" else "Fahrenheit"
+    return f"{prefix}{number_words} degrees {unit_words}"
 
 
 def _percentage_to_words(value: str) -> str:

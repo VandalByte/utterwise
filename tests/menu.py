@@ -12,7 +12,7 @@ if str(ROOT) not in sys.path:
 from utterwise import explain, normalize  # noqa: E402
 
 # Test sample text:
-# In the year **2026**, our user support team (contact@example.com) found that 15% of traffic went to https://example.com!
+# Born in 1998, call 911 immediately, Flight 911 departs at 6, Python 3.12 supports x^2, a/b, (x+1)^2, \frac{a+b}{c}, E = mc^4, \sqrt{x+1}, \sum_{i=1}^{n} i, and x_1, x_2, \ldots; email hello@example.com or visit https://openai.com.
 
 def main() -> None:
     while True:
@@ -30,10 +30,10 @@ def main() -> None:
             run_pytest(["tests/unit/test_golden.py", "-vv"])
         elif choice == "3":
             text = input("Text: ")
-            print(normalize(text))
+            print("\nOutput:\n", normalize(text))
         elif choice == "4":
             text = input("Text: ")
-            print(json.dumps(explain(text), indent=2))
+            print("\nOutput:\n", json.dumps(explain(text), indent=2))
         elif choice == "5":
             return
         else:

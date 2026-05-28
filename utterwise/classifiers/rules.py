@@ -66,6 +66,7 @@ VERSION_HINTS = {
 
 EXACT_RULES = [
     Rule("math_exact", 110, "MATH", 0.98, "math expression span detected", lambda token: token.type == "MATH"),
+    Rule("temperature_exact", 105, "TEMPERATURE", 0.96, "temperature pattern matched", lambda token: token.type == "TEMPERATURE"),
     Rule("url_exact", 100, "URL", 0.98, "URL pattern matched", lambda token: token.type == "URL"),
     Rule("email_exact", 100, "EMAIL", 0.98, "email pattern matched", lambda token: token.type == "EMAIL"),
     Rule("phone_exact", 95, "PHONE", 0.96, "phone-like digit pattern matched", lambda token: token.type == "PHONE" or _is_phone_number(token.value)),
