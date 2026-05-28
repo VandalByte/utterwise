@@ -89,6 +89,13 @@ def numeric_candidates(token: Token) -> list[Candidate]:
     if token.value.isdigit() and len(token.value) == 4:
         return _year_or_cardinal_candidates(token)
 
+    if token.value.isdigit() and len(token.value) == 3:
+        return [
+            Candidate("PHONE", 0.42, "phone_possible_short_code", "three-digit number can be a short phone or emergency number"),
+            Candidate("FLIGHT_NO", 0.2, "flight_possible_number", "three-digit number can be a flight or route number"),
+            Candidate("CARDINAL", 0.7, "cardinal_possible_number", "three-digit number can be read as a cardinal"),
+        ]
+
     return [
         Candidate("CARDINAL", 0.9, "cardinal_default", "numeric token without a stronger semantic context"),
     ]

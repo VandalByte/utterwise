@@ -47,6 +47,10 @@ class NormalizationResult:
                     "start": token.start,
                     "end": token.end,
                     "candidates": [asdict(candidate) for candidate in token.candidates],
+                    "winner": token.metadata.get("winner"),
+                    "rule_chain": token.metadata.get("rule_chain", []),
+                    "signals": token.metadata.get("signals", []),
+                    "fallback_used": token.metadata.get("fallback_used", False),
                     "metadata": token.metadata,
                 }
                 for token, segment in zip(self.tokens, self.segments)

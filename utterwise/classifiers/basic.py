@@ -17,11 +17,8 @@ def classify(tokens: list[Token], flags: DetectionFlags) -> list[Token]:
             continue
 
         token.candidates = candidates
-        best = max(candidates, key=lambda candidate: candidate.confidence)
-        token.type = best.type
-        token.confidence = best.confidence
-        token.metadata["matched_rule"] = best.rule
-        token.metadata["classification_reason"] = best.reason
+        token.metadata["matched_rule"] = "candidate_collection"
+        token.metadata["classification_reason"] = "ambiguous numeric token collected for disambiguation"
     return tokens
 
 
@@ -48,4 +45,7 @@ def _context_for(tokens: list[Token], index: int) -> dict[str, list[str]]:
         "next_words": [
             token.value.lower() for token in next_tokens if token.type == "WORD"
         ],
+        "previous_values": [token.value.lower() for token in previous_tokens],
+        "next_values": [token.value.lower() for token in next_tokens],
+        "token_index": index,
     }

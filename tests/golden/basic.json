@@ -93,5 +93,20 @@
     "name": "acronym_map_and_fallback",
     "input": "NASA and HTTP",
     "plain": "nasa and H T T P"
+  },
+  {
+    "name": "emergency_911",
+    "input": "Call 911 immediately",
+    "plain": "Call nine one one immediately"
+  },
+  {
+    "name": "flight_911",
+    "input": "Flight 911 departs at 6",
+    "plain": "Flight nine eleven departs at six"
+  },
+  {
+    "name": "math_911",
+    "input": "911 divided by 3 is 303",
+    "plain": "nine hundred eleven divided by three is three hundred three"
   }
 ]

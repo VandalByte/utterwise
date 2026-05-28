@@ -50,6 +50,8 @@ def _verbalize_one(token: Token, policy: Policy) -> SpokenSegment:
         return _segment(token, _version_to_words(token.value), token)
     if token.type == "PHONE":
         return _segment(token, _phone_to_words(token.value), token)
+    if token.type == "FLIGHT_NO":
+        return _segment(token, _flight_no_to_words(token.value), token)
     if token.type == "PERCENTAGE":
         return _segment(token, _percentage_to_words(token.value), token)
     if token.type == "ACRONYM":
@@ -92,6 +94,12 @@ def _phone_to_words(value: str) -> str:
     if digit_words:
         words.append(digit_words)
     return " ".join(words)
+
+
+def _flight_no_to_words(value: str) -> str:
+    if value.isdigit() and len(value) == 3 and value[1:] != "00":
+        return f"{cardinal_to_words(value[0])} {cardinal_to_words(value[1:])}"
+    return digits_to_words(value)
 
 
 def _percentage_to_words(value: str) -> str:
