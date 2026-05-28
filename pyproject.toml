@@ -19,7 +19,6 @@ keywords = ["tts", "normalization", "ssml", "speech", "text-normalization"]
 classifiers = [
   "Development Status :: 3 - Alpha",
   "Intended Audience :: Developers",
-  "License :: OSI Approved :: Apache Software License",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
@@ -32,6 +31,10 @@ dependencies = []
 
 [project.optional-dependencies]
 dev = ["pytest>=8"]
+math = [
+    "pylatexenc>=2.10",
+    "sympy>=1.14.0",
+]
 
 [project.urls]
 Homepage = "https://github.com/VandalByte/utterwise"

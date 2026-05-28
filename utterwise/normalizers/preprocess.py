@@ -3,7 +3,7 @@ from __future__ import annotations
 import re
 
 
-MARKDOWN_RE = re.compile(r"(\*\*|__|\*|_|`|~~)")
+MARKDOWN_RE = re.compile(r"(\*\*|__|\*|`|~~)")
 
 
 def has_markdown(text: str) -> bool:

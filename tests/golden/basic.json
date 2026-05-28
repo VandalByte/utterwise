@@ -108,5 +108,45 @@
     "name": "math_911",
     "input": "911 divided by 3 is 303",
     "plain": "nine hundred eleven divided by three is three hundred three"
+  },
+  {
+    "name": "math_power",
+    "input": "x^2",
+    "plain": "x squared"
+  },
+  {
+    "name": "math_fraction",
+    "input": "a/b",
+    "plain": "a over b"
+  },
+  {
+    "name": "math_parenthesized_power",
+    "input": "(x+1)^2",
+    "plain": "open parenthesis x plus one close parenthesis squared"
+  },
+  {
+    "name": "latex_fraction",
+    "input": "\\frac{a+b}{c}",
+    "plain": "a plus b over c"
+  },
+  {
+    "name": "math_equation",
+    "input": "E = mc^2",
+    "plain": "E equals m c squared"
+  },
+  {
+    "name": "latex_square_root",
+    "input": "\\sqrt{x+1}",
+    "plain": "square root of x plus one"
+  },
+  {
+    "name": "latex_sum",
+    "input": "\\sum_{i=1}^{n} i",
+    "plain": "sum from i equals one to n of i"
+  },
+  {
+    "name": "math_subscripts_and_ellipsis",
+    "input": "x_1, x_2, \\ldots",
+    "plain": "x sub one, x sub two, and so on"
   }
 ]

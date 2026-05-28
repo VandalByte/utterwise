@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from utterwise.math import has_math
 from utterwise.normalizers.preprocess import has_markdown
 from utterwise.tokens import Token
 
@@ -17,6 +18,7 @@ class DetectionFlags:
     phone: bool = False
     acronym: bool = False
     percentage: bool = False
+    math: bool = False
     symbol: bool = False
     punctuation: bool = False
     markdown: bool = False
@@ -34,6 +36,7 @@ def detect(text: str, tokens: list[Token] | None = None) -> DetectionFlags:
         phone=any(token.type == "PHONE" for token in values),
         acronym=any(token.type == "ACRONYM" for token in values),
         percentage=any(token.type == "PERCENTAGE" for token in values),
+        math=any(token.type == "MATH" for token in values) or has_math(text),
         symbol=any(token.type == "SYMBOL" for token in values),
         punctuation=any(token.type == "PUNCTUATION" for token in values),
         markdown=has_markdown(text),

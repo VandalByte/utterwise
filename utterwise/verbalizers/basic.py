@@ -3,6 +3,7 @@ from __future__ import annotations
 import re
 from urllib.parse import urlparse
 
+from utterwise.math import verbalize_math
 from utterwise.policies.base import Policy
 from utterwise.tokens import SpokenSegment, Token
 from utterwise.verbalizers.numbers import (
@@ -40,6 +41,13 @@ def verbalize(tokens: list[Token], policy: Policy) -> list[SpokenSegment]:
 
 
 def _verbalize_one(token: Token, policy: Policy) -> SpokenSegment:
+    if token.type == "MATH":
+        speech = verbalize_math(token.value)
+        token.confidence = speech.confidence
+        token.metadata["matched_rule"] = speech.rule
+        token.metadata["parser"] = speech.parser
+        token.metadata.update(speech.metadata)
+        return _segment(token, speech.text, token)
     if token.type == "CARDINAL":
         return _segment(token, cardinal_to_words(token.value), token)
     if token.type == "YEAR":

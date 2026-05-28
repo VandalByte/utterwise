@@ -51,6 +51,7 @@ class NormalizationResult:
                     "rule_chain": token.metadata.get("rule_chain", []),
                     "signals": token.metadata.get("signals", []),
                     "fallback_used": token.metadata.get("fallback_used", False),
+                    "parser": token.metadata.get("parser"),
                     "metadata": token.metadata,
                 }
                 for token, segment in zip(self.tokens, self.segments)
