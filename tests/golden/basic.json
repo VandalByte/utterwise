@@ -168,5 +168,45 @@
     "name": "temperature_spaced_degree",
     "input": "The temperature is 25 °C",
     "plain": "The temperature is twenty five degrees Celsius"
+  },
+  {
+    "name": "currency_dollars_and_cents",
+    "input": "$12.50",
+    "plain": "twelve dollars and fifty cents"
+  },
+  {
+    "name": "currency_dollars_with_comma",
+    "input": "$1,200",
+    "plain": "one thousand two hundred dollars"
+  },
+  {
+    "name": "currency_euros",
+    "input": "€45",
+    "plain": "forty five euros"
+  },
+  {
+    "name": "currency_pounds_and_pence",
+    "input": "£9.99",
+    "plain": "nine pounds and ninety nine pence"
+  },
+  {
+    "name": "date_month_name_short",
+    "input": "Jan 3, 2026",
+    "plain": "January third twenty twenty six"
+  },
+  {
+    "name": "date_month_name_long",
+    "input": "January 3 2026",
+    "plain": "January third twenty twenty six"
+  },
+  {
+    "name": "date_iso",
+    "input": "2026-04-03",
+    "plain": "third of April twenty twenty six"
+  },
+  {
+    "name": "date_slash_dmy",
+    "input": "03/04/2026",
+    "plain": "third of April twenty twenty six"
   }
 ]

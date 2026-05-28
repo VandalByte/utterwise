@@ -4,6 +4,7 @@ from dataclasses import asdict, dataclass
 from typing import Any
 
 from utterwise.classifiers import classify
+from utterwise.config import NormalizeConfig, resolve_config
 from utterwise.detectors import DetectionFlags, detect
 from utterwise.disambiguator import disambiguate
 from utterwise.formatters import format_plain, format_ssml
@@ -23,6 +24,7 @@ class NormalizationResult:
     output: str
     output_format: str
     policy: str
+    config: NormalizeConfig
     detection: DetectionFlags
     tokens: list[Token]
     segments: list[SpokenSegment]
@@ -36,6 +38,7 @@ class NormalizationResult:
             "output": self.output,
             "format": self.output_format,
             "policy": self.policy,
+            "config": asdict(self.config),
             "detection": asdict(self.detection),
             "tokens": [
                 {
@@ -60,7 +63,14 @@ class NormalizationResult:
 
 
 class Normalizer:
-    def normalize(self, text: str, output: str = "plain", policy: str = "assistant") -> NormalizationResult:
+    def normalize(
+        self,
+        text: str,
+        output: str = "plain",
+        policy: str = "assistant",
+        config: NormalizeConfig | None = None,
+        **config_overrides: Any,
+    ) -> NormalizationResult:
         """Run text through preprocessing, tokenization, classification, and formatting."""
 
         if not isinstance(text, str):
@@ -69,9 +79,10 @@ class Normalizer:
             raise ValueError("output must be 'plain' or 'ssml'")
 
         active_policy = get_policy(policy)
+        active_config = resolve_config(config, **config_overrides)
         cleaned = preprocess(text)
-        tokens = tokenize(cleaned)
-        flags = detect(text, tokens)
+        tokens = tokenize(cleaned, config=active_config)
+        flags = detect(text, tokens, config=active_config)
         classified = classify(tokens, flags)
         resolved = disambiguate(classified)
         segments = verbalize(resolved, active_policy)
@@ -83,6 +94,7 @@ class Normalizer:
             output=rendered,
             output_format=output,
             policy=active_policy.name,
+            config=active_config,
             detection=flags,
             tokens=resolved,
             segments=segments,

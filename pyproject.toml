@@ -41,6 +41,9 @@ Homepage = "https://github.com/VandalByte/utterwise"
 Repository = "https://github.com/VandalByte/utterwise"
 Issues = "https://github.com/VandalByte/utterwise/issues"
 
+[project.scripts]
+utterwise = "utterwise.cli:main"
+
 [tool.setuptools.packages.find]
 include = ["utterwise*"]
 

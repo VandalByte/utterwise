@@ -25,6 +25,54 @@ SYMBOLS = {
     "÷": "divided by",
 }
 
+CURRENCY_UNITS = {
+    "$": ("dollar", "dollars", "cent", "cents"),
+    "€": ("euro", "euros", "cent", "cents"),
+    "£": ("pound", "pounds", "penny", "pence"),
+}
+
+MONTH_ALIASES = {
+    "jan": "January",
+    "january": "January",
+    "feb": "February",
+    "february": "February",
+    "mar": "March",
+    "march": "March",
+    "apr": "April",
+    "april": "April",
+    "may": "May",
+    "jun": "June",
+    "june": "June",
+    "jul": "July",
+    "july": "July",
+    "aug": "August",
+    "august": "August",
+    "sep": "September",
+    "sept": "September",
+    "september": "September",
+    "oct": "October",
+    "october": "October",
+    "nov": "November",
+    "november": "November",
+    "dec": "December",
+    "december": "December",
+}
+
+MONTH_NAMES = {
+    1: "January",
+    2: "February",
+    3: "March",
+    4: "April",
+    5: "May",
+    6: "June",
+    7: "July",
+    8: "August",
+    9: "September",
+    10: "October",
+    11: "November",
+    12: "December",
+}
+
 KNOWN_TERMS = {
     "openai": "open ai",
 }
@@ -48,6 +96,10 @@ def _verbalize_one(token: Token, policy: Policy) -> SpokenSegment:
         token.metadata["parser"] = speech.parser
         token.metadata.update(speech.metadata)
         return _segment(token, speech.text, token)
+    if token.type == "DATE":
+        return _segment(token, _date_to_words(token.value), token)
+    if token.type == "CURRENCY":
+        return _segment(token, _currency_to_words(token.value), token)
     if token.type == "TEMPERATURE":
         return _segment(token, _temperature_to_words(token.value), token)
     if token.type == "CARDINAL":
@@ -110,6 +162,53 @@ def _flight_no_to_words(value: str) -> str:
     if value.isdigit() and len(value) == 3 and value[1:] != "00":
         return f"{cardinal_to_words(value[0])} {cardinal_to_words(value[1:])}"
     return digits_to_words(value)
+
+
+def _currency_to_words(value: str) -> str:
+    match = re.fullmatch(r"\s*([$€£])\s?(\d+(?:,\d{3})*)(?:\.(\d{1,2}))?\s*", value)
+    if not match:
+        return value
+
+    symbol, whole, cents = match.groups()
+    singular, plural, cent_singular, cent_plural = CURRENCY_UNITS[symbol]
+    amount = int(whole.replace(",", ""))
+    unit = singular if amount == 1 else plural
+    words = f"{cardinal_to_words(str(amount))} {unit}"
+
+    if cents is not None and int(cents) > 0:
+        cent_value = int(cents.ljust(2, "0"))
+        cent_unit = cent_singular if cent_value == 1 else cent_plural
+        words = f"{words} and {cardinal_to_words(str(cent_value))} {cent_unit}"
+    return words
+
+
+def _date_to_words(value: str) -> str:
+    text = value.strip().replace(",", "")
+    if match := re.fullmatch(r"(\d{4})-(\d{1,2})-(\d{1,2})", text):
+        year, month, day = (int(part) for part in match.groups())
+        return _dmy_date_to_words(day, month, year)
+
+    if match := re.fullmatch(r"(\d{1,2})/(\d{1,2})/(\d{4})", text):
+        day, month, year = (int(part) for part in match.groups())
+        return _dmy_date_to_words(day, month, year)
+
+    if match := re.fullmatch(r"([A-Za-z.]+)\s+(\d{1,2})\s+(\d{4})", text):
+        month_text, day, year = match.groups()
+        month = MONTH_ALIASES.get(month_text.rstrip(".").lower())
+        if month:
+            return f"{month} {_day_to_words(int(day))} {year_to_words(year)}"
+    return value
+
+
+def _dmy_date_to_words(day: int, month: int, year: int) -> str:
+    month_name = MONTH_NAMES.get(month)
+    if not month_name:
+        return f"{day}/{month}/{year}"
+    return f"{_day_to_words(day)} of {month_name} {year_to_words(str(year))}"
+
+
+def _day_to_words(day: int) -> str:
+    return ordinal_to_words(f"{day}th")
 
 
 def _temperature_to_words(value: str) -> str:

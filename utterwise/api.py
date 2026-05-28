@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from utterwise.config import NormalizeConfig
 from utterwise.normalizers import Normalizer
 
 
@@ -13,6 +14,8 @@ def normalize(
     output: str = "plain",
     policy: str = "assistant",
     explain: bool = False,
+    config: NormalizeConfig | None = None,
+    **config_overrides: Any,
 ) -> str | dict[str, Any]:
     """Normalize text into a speech-friendly string or SSML document.
 
@@ -31,11 +34,22 @@ def normalize(
         source spans.
     """
 
-    result = _NORMALIZER.normalize(text, output=output, policy=policy)
+    result = _NORMALIZER.normalize(
+        text,
+        output=output,
+        policy=policy,
+        config=config,
+        **config_overrides,
+    )
     return result.explain() if explain else result.output
 
 
-def normalize_ssml(text: str, policy: str = "assistant") -> str:
+def normalize_ssml(
+    text: str,
+    policy: str = "assistant",
+    config: NormalizeConfig | None = None,
+    **config_overrides: Any,
+) -> str:
     """Normalize text and wrap the result in a minimal SSML ``<speak>`` tag.
 
     Args:
@@ -46,10 +60,21 @@ def normalize_ssml(text: str, policy: str = "assistant") -> str:
         A valid XML string such as ``"<speak>hello at example dot com</speak>"``.
     """
 
-    return _NORMALIZER.normalize(text, output="ssml", policy=policy).output
+    return _NORMALIZER.normalize(
+        text,
+        output="ssml",
+        policy=policy,
+        config=config,
+        **config_overrides,
+    ).output
 
 
-def explain(text: str, policy: str = "assistant") -> dict[str, Any]:
+def explain(
+    text: str,
+    policy: str = "assistant",
+    config: NormalizeConfig | None = None,
+    **config_overrides: Any,
+) -> dict[str, Any]:
     """Return a token-level trace for how Utterwise normalized the text.
 
     Args:
@@ -62,4 +87,41 @@ def explain(text: str, policy: str = "assistant") -> dict[str, Any]:
         candidates, and metadata.
     """
 
-    return _NORMALIZER.normalize(text, output="plain", policy=policy).explain()
+    return _NORMALIZER.normalize(
+        text,
+        output="plain",
+        policy=policy,
+        config=config,
+        **config_overrides,
+    ).explain()
+
+
+def explain_pretty(
+    text: str,
+    policy: str = "assistant",
+    config: NormalizeConfig | None = None,
+    **config_overrides: Any,
+) -> str:
+    """Return a compact table showing token-level normalization decisions."""
+
+    trace = explain(text, policy=policy, config=config, **config_overrides)
+    rows = [("raw", "type", "spoken", "rule", "conf")]
+    for token in trace["tokens"]:
+        rows.append(
+            (
+                str(token["value"]),
+                str(token["type"]),
+                str(token["spoken"]),
+                str(token["rule"]),
+                f"{float(token['confidence']):.2f}",
+            )
+        )
+
+    widths = [max(len(row[index]) for row in rows) for index in range(len(rows[0]))]
+    lines = []
+    for row_index, row in enumerate(rows):
+        line = "  ".join(value.ljust(widths[index]) for index, value in enumerate(row))
+        lines.append(line.rstrip())
+        if row_index == 0:
+            lines.append("  ".join("-" * width for width in widths))
+    return "\n".join(lines)
