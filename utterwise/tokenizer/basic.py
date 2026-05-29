@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import re
+from datetime import date
+from typing import Any
 
 from utterwise.config import NormalizeConfig
 from utterwise.math import find_math_spans
@@ -32,9 +34,9 @@ TEMPERATURE_CONTEXT_WORDS = {
 
 TOKEN_RE = re.compile(
     r"""
-    (?P<url>https?://[^\s]+|www\.[^\s]+)
+    (?P<url>https?://[^\s]+|www\.[^\s]+|(?:[A-Za-z0-9-]+\.)+[A-Za-z]{2,})
     |(?P<email>[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,})
-    |(?P<phone>\+?\d[\d().-]{6,}\d)
+    |(?P<phone>\+?\d[\d().-]*[-().]\d[\d().-]{4,}\d|\+\d{7,15})
     |(?P<percentage>\d+(?:\.\d+)?%)
     |(?P<version>v\d+(?:\.\d+)+)
     |(?P<ordinal>\d+(?:st|nd|rd|th))
@@ -62,15 +64,50 @@ RAW_TO_TYPE = {
     "punctuation": "PUNCTUATION",
 }
 
+MONTH_ALIASES = {
+    "jan": 1,
+    "january": 1,
+    "feb": 2,
+    "february": 2,
+    "mar": 3,
+    "march": 3,
+    "apr": 4,
+    "april": 4,
+    "may": 5,
+    "jun": 6,
+    "june": 6,
+    "jul": 7,
+    "july": 7,
+    "aug": 8,
+    "august": 8,
+    "sep": 9,
+    "sept": 9,
+    "september": 9,
+    "oct": 10,
+    "october": 10,
+    "nov": 11,
+    "november": 11,
+    "dec": 12,
+    "december": 12,
+}
+
 
 def tokenize(text: str, config: NormalizeConfig | None = None) -> list[Token]:
     active_config = config or NormalizeConfig()
     tokens: list[Token] = []
     cursor = 0
-    for token_type, start, end in _semantic_spans(text, active_config):
+    for token_type, start, end, metadata in _semantic_spans(text, active_config):
         if cursor < start:
             tokens.extend(_tokenize_plain(text[cursor:start], cursor))
-        tokens.append(Token(type=token_type, value=text[start:end], start=start, end=end))
+        tokens.append(
+            Token(
+                type=token_type,
+                value=text[start:end],
+                start=start,
+                end=end,
+                metadata=metadata,
+            )
+        )
         cursor = end
 
     if cursor < len(text):
@@ -78,21 +115,81 @@ def tokenize(text: str, config: NormalizeConfig | None = None) -> list[Token]:
     return tokens
 
 
-def _semantic_spans(text: str, config: NormalizeConfig) -> list[tuple[str, int, int]]:
-    spans: list[tuple[str, int, int, int]] = []
+def _semantic_spans(text: str, config: NormalizeConfig) -> list[tuple[str, int, int, dict[str, Any]]]:
+    spans: list[tuple[str, int, int, int, dict[str, Any]]] = []
     if config.enable_dates:
-        spans.extend(("DATE", start, end, 100) for start, end in _find_regex_spans(DATE_RE, text))
+        spans.extend(
+            ("DATE", start, end, 100, metadata)
+            for start, end, metadata in _find_date_spans(text, config)
+        )
+        spans.extend(
+            ("TEXT", start, end, 99, metadata)
+            for start, end, metadata in _find_invalid_date_spans(text, config)
+        )
     if config.enable_currency:
-        spans.extend(("CURRENCY", start, end, 90) for start, end in _find_regex_spans(CURRENCY_RE, text))
+        spans.extend(("CURRENCY", start, end, 90, {}) for start, end in _find_regex_spans(CURRENCY_RE, text))
     if config.enable_temperature:
-        spans.extend(("TEMPERATURE", start, end, 80) for start, end in _find_temperature_spans(text))
+        spans.extend(("TEMPERATURE", start, end, 80, {}) for start, end in _find_temperature_spans(text))
     if config.enable_math:
-        spans.extend(("MATH", start, end, 10) for start, end in find_math_spans(text))
+        spans.extend(("MATH", start, end, 10, {}) for start, end in find_math_spans(text))
     return _merge_semantic_spans(spans)
 
 
 def _find_regex_spans(pattern: re.Pattern[str], text: str) -> list[tuple[int, int]]:
     return [(match.start(), match.end()) for match in pattern.finditer(text)]
+
+
+def _find_date_spans(text: str, config: NormalizeConfig) -> list[tuple[int, int, dict[str, Any]]]:
+    spans = []
+    for match in DATE_RE.finditer(text):
+        metadata = _date_metadata(match.group(), config.date_format)
+        if metadata:
+            spans.append((match.start(), match.end(), metadata))
+    return spans
+
+
+def _find_invalid_date_spans(text: str, config: NormalizeConfig) -> list[tuple[int, int, dict[str, Any]]]:
+    spans = []
+    for match in DATE_RE.finditer(text):
+        if _date_metadata(match.group(), config.date_format) is None:
+            spans.append((match.start(), match.end(), {"date_parse_error": "invalid_date"}))
+    return spans
+
+
+def _date_metadata(value: str, date_format: str) -> dict[str, Any] | None:
+    text = value.strip().replace(",", "")
+    if match := re.fullmatch(r"(\d{4})-(\d{1,2})-(\d{1,2})", text):
+        year, month, day = (int(part) for part in match.groups())
+        return _validated_date(day, month, year, "ISO")
+
+    if match := re.fullmatch(r"(\d{1,2})/(\d{1,2})/(\d{4})", text):
+        first, second, year = (int(part) for part in match.groups())
+        if date_format.upper() == "MDY":
+            month, day = first, second
+        else:
+            day, month = first, second
+        return _validated_date(day, month, year, date_format.upper())
+
+    if match := re.fullmatch(r"([A-Za-z.]+)\s+(\d{1,2})\s+(\d{4})", text):
+        month_text, day_text, year_text = match.groups()
+        month = MONTH_ALIASES.get(month_text.rstrip(".").lower())
+        if not month:
+            return None
+        return _validated_date(int(day_text), month, int(year_text), "MONTH_NAME")
+    return None
+
+
+def _validated_date(day: int, month: int, year: int, date_format: str) -> dict[str, Any] | None:
+    try:
+        date(year, month, day)
+    except ValueError:
+        return None
+    return {
+        "date_day": day,
+        "date_month": month,
+        "date_year": year,
+        "date_format": date_format,
+    }
 
 
 def _find_temperature_spans(text: str) -> list[tuple[int, int]]:
@@ -109,15 +206,17 @@ def _has_temperature_context(text: str, start: int, end: int) -> bool:
     return any(word in window for word in TEMPERATURE_CONTEXT_WORDS)
 
 
-def _merge_semantic_spans(spans: list[tuple[str, int, int, int]]) -> list[tuple[str, int, int]]:
-    kept: list[tuple[str, int, int]] = []
-    for token_type, start, end, priority in sorted(
+def _merge_semantic_spans(
+    spans: list[tuple[str, int, int, int, dict[str, Any]]],
+) -> list[tuple[str, int, int, dict[str, Any]]]:
+    kept: list[tuple[str, int, int, dict[str, Any]]] = []
+    for token_type, start, end, priority, metadata in sorted(
         spans,
         key=lambda span: (span[1], -span[3], -(span[2] - span[1])),
     ):
         if kept and start < kept[-1][2]:
             continue
-        kept.append((token_type, start, end))
+        kept.append((token_type, start, end, metadata))
     return kept
 
 

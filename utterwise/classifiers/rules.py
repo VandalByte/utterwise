@@ -63,6 +63,13 @@ VERSION_HINTS = {
     "version",
 }
 
+PHONE_HINTS = {
+    "call",
+    "called",
+    "dial",
+    "phone",
+}
+
 
 EXACT_RULES = [
     Rule("math_exact", 110, "MATH", 0.98, "math expression span detected", lambda token: token.type == "MATH"),
@@ -71,9 +78,10 @@ EXACT_RULES = [
     Rule("temperature_exact", 105, "TEMPERATURE", 0.96, "temperature pattern matched", lambda token: token.type == "TEMPERATURE"),
     Rule("url_exact", 100, "URL", 0.98, "URL pattern matched", lambda token: token.type == "URL"),
     Rule("email_exact", 100, "EMAIL", 0.98, "email pattern matched", lambda token: token.type == "EMAIL"),
-    Rule("phone_exact", 95, "PHONE", 0.96, "phone-like digit pattern matched", lambda token: token.type == "PHONE" or _is_phone_number(token.value)),
+    Rule("phone_exact", 95, "PHONE", 0.96, "phone-like digit pattern matched", lambda token: token.type == "PHONE" or _is_contextual_phone_number(token)),
     Rule("percentage_exact", 90, "PERCENTAGE", 0.97, "percentage pattern matched", lambda token: token.type == "PERCENTAGE"),
     Rule("version_prefixed", 88, "VERSION", 0.97, "prefixed version pattern matched", lambda token: token.type == "VERSION"),
+    Rule("version_multi_part", 87, "VERSION", 0.94, "multi-part version pattern matched", lambda token: _is_multi_part_version(token.value)),
     Rule("version_context", 86, "VERSION", 0.9, "decimal number in version context", lambda token: _is_contextual_version(token)),
     Rule("ordinal_exact", 84, "ORDINAL", 0.97, "ordinal suffix pattern matched", lambda token: token.type == "ORDINAL"),
     Rule("acronym_exact", 80, "ACRONYM", 0.94, "uppercase acronym pattern matched", lambda token: token.type == "ACRONYM"),
@@ -134,9 +142,16 @@ def _year_or_cardinal_candidates(token: Token) -> list[Candidate]:
     ]
 
 
-def _is_phone_number(value: str) -> bool:
+def _is_contextual_phone_number(token: Token) -> bool:
+    value = token.value
     digits = re.sub(r"\D", "", value)
-    return value.isdigit() and len(digits) == 10
+    previous_words = set(token.context.get("previous_words", []))
+    return value.isdigit() and len(digits) == 10 and bool(previous_words & PHONE_HINTS)
+
+
+def _is_multi_part_version(value: str) -> bool:
+    parts = value.split(".")
+    return len(parts) >= 3 and all(part.isdigit() for part in parts)
 
 
 def _is_contextual_version(token: Token) -> bool:

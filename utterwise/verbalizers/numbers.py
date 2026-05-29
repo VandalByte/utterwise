@@ -3,6 +3,8 @@ from __future__ import annotations
 import re
 
 
+MAX_CARDINAL = 999_999_999_999
+
 ONES = {
     0: "zero",
     1: "one",
@@ -71,28 +73,31 @@ ORDINAL_TENS = {
     90: "ninetieth",
 }
 
+SCALES = (
+    (1_000_000_000, "billion"),
+    (1_000_000, "million"),
+    (1_000, "thousand"),
+)
+
 
 def cardinal_to_words(value: str) -> str:
     normalized = value.replace(",", "")
+    if "." in normalized:
+        return decimal_to_words(normalized)
     if not normalized.isdigit():
         return value
+    if _should_spell_digits(normalized):
+        return digits_to_words(normalized)
 
     number = int(normalized)
-    if number < 20:
-        return ONES[number]
-    if number < 100:
-        tens, ones = divmod(number, 10)
-        words = TENS[tens * 10]
-        return f"{words} {ONES[ones]}" if ones else words
-    if number < 1000:
-        hundreds, remainder = divmod(number, 100)
-        words = f"{ONES[hundreds]} hundred"
-        return f"{words} {cardinal_to_words(str(remainder))}" if remainder else words
-    if number < 1_000_000:
-        thousands, remainder = divmod(number, 1000)
-        words = f"{cardinal_to_words(str(thousands))} thousand"
-        return f"{words} {cardinal_to_words(str(remainder))}" if remainder else words
-    return value
+    if number > MAX_CARDINAL:
+        return digits_to_words(normalized)
+    return _int_to_words(number)
+
+
+def is_above_supported_cardinal(value: str) -> bool:
+    normalized = value.replace(",", "")
+    return normalized.isdigit() and int(normalized) > MAX_CARDINAL
 
 
 def year_to_words(value: str) -> str:
@@ -136,13 +141,32 @@ def decimal_to_words(value: str) -> str:
     whole, _, fraction = value.partition(".")
     if not fraction:
         return cardinal_to_words(whole)
-
-    if len(fraction) > 1 and fraction.startswith("0"):
-        fraction_words = digits_to_words(fraction)
-    else:
-        fraction_words = cardinal_to_words(fraction)
-    return f"{cardinal_to_words(whole)} point {fraction_words}"
+    return f"{cardinal_to_words(whole)} point {digits_to_words(fraction)}"
 
 
 def digits_to_words(value: str) -> str:
     return " ".join(ONES[int(digit)] for digit in re.sub(r"\D", "", value))
+
+
+def _int_to_words(number: int) -> str:
+    if number < 20:
+        return ONES[number]
+    if number < 100:
+        tens, ones = divmod(number, 10)
+        words = TENS[tens * 10]
+        return f"{words} {ONES[ones]}" if ones else words
+    if number < 1000:
+        hundreds, remainder = divmod(number, 100)
+        words = f"{ONES[hundreds]} hundred"
+        return f"{words} {_int_to_words(remainder)}" if remainder else words
+
+    for scale, scale_name in SCALES:
+        if number >= scale:
+            quotient, remainder = divmod(number, scale)
+            words = f"{_int_to_words(quotient)} {scale_name}"
+            return f"{words} {_int_to_words(remainder)}" if remainder else words
+    return str(number)
+
+
+def _should_spell_digits(value: str) -> bool:
+    return len(value) > 1 and value.startswith("0")

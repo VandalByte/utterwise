@@ -10,6 +10,7 @@ from utterwise.verbalizers.numbers import (
     cardinal_to_words,
     decimal_to_words,
     digits_to_words,
+    is_above_supported_cardinal,
     ordinal_to_words,
     year_to_words,
 )
@@ -97,12 +98,14 @@ def _verbalize_one(token: Token, policy: Policy) -> SpokenSegment:
         token.metadata.update(speech.metadata)
         return _segment(token, speech.text, token)
     if token.type == "DATE":
-        return _segment(token, _date_to_words(token.value), token)
+        return _segment(token, _date_to_words(token.value, token.metadata), token)
     if token.type == "CURRENCY":
         return _segment(token, _currency_to_words(token.value), token)
     if token.type == "TEMPERATURE":
         return _segment(token, _temperature_to_words(token.value), token)
     if token.type == "CARDINAL":
+        if is_above_supported_cardinal(token.value):
+            token.metadata["number_fallback"] = "above_supported_range_digit_spellout"
         return _segment(token, cardinal_to_words(token.value), token)
     if token.type == "YEAR":
         return _segment(token, year_to_words(token.value), token)
@@ -145,7 +148,18 @@ def _version_to_words(value: str) -> str:
     if normalized.startswith("v"):
         prefix = "v "
         normalized = normalized[1:]
-    return f"{prefix}{decimal_to_words(normalized)}".strip()
+
+    parts = normalized.split(".")
+    if len(parts) >= 3 and all(part.isdigit() for part in parts):
+        return f"{prefix}{' point '.join(cardinal_to_words(part) for part in parts)}".strip()
+    return f"{prefix}{_version_decimal_to_words(normalized)}".strip()
+
+
+def _version_decimal_to_words(value: str) -> str:
+    whole, _, fraction = value.partition(".")
+    if not fraction:
+        return cardinal_to_words(whole)
+    return f"{cardinal_to_words(whole)} point {cardinal_to_words(fraction)}"
 
 
 def _phone_to_words(value: str) -> str:
@@ -182,7 +196,18 @@ def _currency_to_words(value: str) -> str:
     return words
 
 
-def _date_to_words(value: str) -> str:
+def _date_to_words(value: str, metadata: dict) -> str:
+    if {"date_day", "date_month", "date_year"} <= metadata.keys():
+        if metadata.get("date_format") == "MONTH_NAME":
+            month_name = MONTH_NAMES.get(int(metadata["date_month"]))
+            if month_name:
+                return f"{month_name} {_day_to_words(int(metadata['date_day']))} {year_to_words(str(metadata['date_year']))}"
+        return _dmy_date_to_words(
+            int(metadata["date_day"]),
+            int(metadata["date_month"]),
+            int(metadata["date_year"]),
+        )
+
     text = value.strip().replace(",", "")
     if match := re.fullmatch(r"(\d{4})-(\d{1,2})-(\d{1,2})", text):
         year, month, day = (int(part) for part in match.groups())

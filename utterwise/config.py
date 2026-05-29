@@ -14,6 +14,7 @@ class NormalizeConfig:
     enable_currency: bool = True
     enable_dates: bool = True
     enable_temperature: bool = True
+    date_format: str = "DMY"
 
 
 def resolve_config(
