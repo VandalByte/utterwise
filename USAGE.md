@@ -1,9 +1,28 @@
-# Utterwise Usage
+# 📖 Utterwise Usage Guide
 
-This page keeps the practical bits close at hand: the public API, runtime
-configuration, CLI examples, and a compact tour of what Utterwise can normalize.
+Practical examples, API reference, runtime configuration, CLI usage, and a
+compact tour of everything Utterwise can normalize.
 
-## Quick Start
+<a id="contents"></a>
+
+## 📚 Contents
+
+- [🚀 Quick Start](#quick-start)
+- [🧩 API Reference](#api-reference)
+  - [`normalize()`](#normalize)
+  - [`normalize_ssml()`](#normalize_ssml)
+  - [`explain()`](#explain)
+  - [`explain_pretty()`](#explain_pretty)
+  - [`NormalizeConfig`](#normalizeconfig)
+- [🎯 Policies](#policies)
+- [🖥️ CLI](#cli)
+- [🔄 Before and After](#before-and-after)
+- [🧮 Math and LaTeX](#math-and-latex)
+- [🧪 Test String](#test-string)
+
+<a id="quick-start"></a>
+
+## 🚀 Quick Start
 
 ```python
 from utterwise import normalize
@@ -12,11 +31,29 @@ normalize("Born in 1998 call 911 immediately and visit openai.com")
 # "Born in nineteen ninety eight call nine one one immediately and visit open ai dot com"
 ```
 
-## API Reference by Example
+<a id="api-reference"></a>
 
-### `normalize(text, output="plain", policy="assistant", explain=False, config=None, **config_overrides)`
+## 🧩 API Reference
 
-Use `normalize` when you want the normal spoken-text output.
+<a id="normalize"></a>
+
+### ✨ `normalize()`
+
+```python
+normalize(
+    text,
+    output="plain",
+    policy="assistant",
+    explain=False,
+    config=None,
+    **config_overrides
+)
+```
+
+Use `normalize()` when you want spoken-text output suitable for TTS engines,
+voice assistants, accessibility tooling, or conversational agents.
+
+#### Basic Examples
 
 ```python
 from utterwise import normalize
@@ -31,18 +68,20 @@ normalize("James bond 007")
 # "James bond zero zero seven"
 ```
 
-You can also request SSML through the same function:
+#### Generate SSML
 
 ```python
 normalize("hello@example.com", output="ssml")
 # "<speak>hello at example dot com</speak>"
 ```
 
-Set `explain=True` when you want structured trace data instead of only the
-rendered output:
+#### Enable Trace Output
 
 ```python
-trace = normalize("Flight 911 departs at 6", explain=True)
+trace = normalize(
+    "Flight 911 departs at 6",
+    explain=True
+)
 
 trace["output"]
 # "Flight nine eleven departs at six"
@@ -51,10 +90,16 @@ trace["tokens"][1]["type"]
 # "FLIGHT_NO"
 ```
 
-## Policies
+<a id="policies"></a>
 
-The public API accepts a `policy` argument on `normalize`, `normalize_ssml`,
-`explain`, and `explain_pretty`.
+## 🎯 Policies
+
+Utterwise supports policy selection across:
+
+- `normalize()`
+- `normalize_ssml()`
+- `explain()`
+- `explain_pretty()`
 
 ```python
 normalize("x^2 + y^2 = z^2", policy="assistant")
@@ -62,20 +107,31 @@ normalize("x^2 + y^2 = z^2", policy="edu")
 normalize("x^2 + y^2 = z^2", policy="accessibility")
 ```
 
-Available policies today:
+### Available Policies
 
-| Policy | Current behavior |
-| --- | --- |
-| `assistant` | Default policy name for voice-assistant style output. |
-| `edu` | Accepted and recorded in explain output, but not style-specific yet. |
-| `accessibility` | Accepted and recorded in explain output, but not style-specific yet. |
+| Policy | Description |
+|----------|-------------|
+| `assistant` | Default voice-assistant style policy. |
+| `edu` | Accepted and recorded in explain output. |
+| `accessibility` | Accepted and recorded in explain output. |
 
-At the moment, policies are validation and pipeline placeholders. They do not
-yet change wording, SSML rate, emphasis, spell-out behavior, or pauses.
+> Current policies are validation and pipeline placeholders. They do not yet
+> alter wording, pauses, emphasis, speaking rate, or SSML generation.
 
-### `normalize_ssml(text, policy="assistant", config=None, **config_overrides)`
+<a id="normalize_ssml"></a>
 
-Use `normalize_ssml` when your TTS engine expects a minimal SSML document.
+### 🔊 `normalize_ssml()`
+
+```python
+normalize_ssml(
+    text,
+    policy="assistant",
+    config=None,
+    **config_overrides
+)
+```
+
+Use `normalize_ssml()` when your TTS engine expects a minimal SSML document.
 
 ```python
 from utterwise import normalize_ssml
@@ -87,9 +143,20 @@ normalize_ssml("5 < 6 & hello@example.com")
 # "<speak>five &lt; six and hello at example dot com</speak>"
 ```
 
-### `explain(text, policy="assistant", config=None, **config_overrides)`
+<a id="explain"></a>
 
-Use `explain` when you want to inspect how Utterwise classified each token.
+### 🔍 `explain()`
+
+```python
+explain(
+    text,
+    policy="assistant",
+    config=None,
+    **config_overrides
+)
+```
+
+Use `explain()` to inspect how Utterwise classified and verbalized each token.
 
 ```python
 from utterwise import explain
@@ -110,12 +177,22 @@ trace["tokens"][2]
 # }
 ```
 
-Explain output includes detection flags, token spans, confidence, candidates,
-winner, rule chain, signals, and metadata where relevant.
+The trace output may include:
 
-### `explain_pretty(text, policy="assistant", config=None, **config_overrides)`
+- Token classifications
+- Candidate interpretations
+- Confidence scores
+- Winning candidate
+- Detection signals
+- Applied rules
+- Character spans
+- Metadata
 
-Use `explain_pretty` when you want a readable table for debugging or demos.
+<a id="explain_pretty"></a>
+
+### 📊 `explain_pretty()`
+
+Use `explain_pretty()` for readable debugging output.
 
 ```python
 from utterwise import explain_pretty
@@ -131,10 +208,13 @@ Call         WORD   Call           identity                 1.00
 immediately  WORD   immediately    identity                 1.00
 ```
 
-### `NormalizeConfig`
+Perfect for demos, debugging sessions, and rule tuning.
 
-Use `NormalizeConfig` when you want to disable a normalizer or control slash-date
-interpretation at runtime.
+<a id="normalizeconfig"></a>
+
+### ⚙️ `NormalizeConfig`
+
+Use `NormalizeConfig` when you need runtime control over individual normalizers.
 
 ```python
 from utterwise import NormalizeConfig, normalize
@@ -147,33 +227,44 @@ config = NormalizeConfig(
     date_format="DMY",
 )
 
-normalize("x^2 costs $5 on 03/04/2026", config=config)
+normalize(
+    "x^2 costs $5 on 03/04/2026",
+    config=config
+)
 # "x ^ two costs five dollars on third of April twenty twenty six"
 ```
 
-You can also pass convenience overrides directly:
+#### Direct Overrides
 
 ```python
-normalize("$12.50 on 03/04/2026", enable_currency=False)
-# "twelve dollars and fifty cents on third of April twenty twenty six"
+normalize(
+    "$12.50 on 03/04/2026",
+    enable_currency=False
+)
 
-normalize("04/03/2026", date_format="MDY")
-# "third of April twenty twenty six"
+normalize(
+    "04/03/2026",
+    date_format="MDY"
+)
 ```
 
-Available config fields:
+### Configuration Fields
 
-| Field | Default | Meaning |
-| --- | --- | --- |
+| Field | Default | Description |
+|---------|---------|-------------|
 | `enable_math` | `True` | Normalize math and LaTeX fragments. |
 | `enable_currency` | `True` | Normalize `$`, `€`, and `£` amounts. |
-| `enable_dates` | `True` | Normalize ISO, slash, and month-name dates. |
+| `enable_dates` | `True` | Normalize ISO, slash, and named dates. |
 | `enable_temperature` | `True` | Normalize Celsius and Fahrenheit values. |
-| `date_format` | `"DMY"` | Interpret slash dates as `"DMY"` or `"MDY"`. |
+| `date_format` | `"DMY"` | Interpret slash dates as `DMY` or `MDY`. |
 
-## CLI
+<a id="cli"></a>
 
-The CLI is intentionally small and good for quick checks.
+## 🖥️ CLI
+
+The CLI is intentionally lightweight and ideal for quick validation.
+
+### Basic Usage
 
 ```powershell
 utterwise "Call 911 immediately"
@@ -185,20 +276,26 @@ utterwise --ssml "hello@example.com"
 utterwise --pretty "Python 3.12 costs $12.50"
 ```
 
-Useful flags:
+### Useful Flags
 
 ```powershell
 utterwise --explain "Flight 911 departs at 6"
+
 utterwise --no-math "x^2"
+
 utterwise --no-currency "$12.50"
+
 utterwise --no-dates "03/04/2026"
+
 utterwise --no-temperature "25°C"
 ```
 
-## Before and After
+<a id="before-and-after"></a>
 
-| Input | Output |
-| --- | --- |
+## 🔄 Before and After
+
+| Input | Spoken Output |
+|---------|--------------|
 | `Born in 1998` | `Born in nineteen ninety eight` |
 | `The value is 1998` | `The value is one thousand nine hundred ninety eight` |
 | `Call 911 immediately` | `Call nine one one immediately` |
@@ -220,18 +317,21 @@ utterwise --no-temperature "25°C"
 | `NASA and HTTP` | `nasa and H T T P` |
 | `12.5%` | `twelve point five percent` |
 
-## Math and LaTeX
+<a id="math-and-latex"></a>
 
-Math support is optional. Install it with:
+## 🧮 Math and LaTeX
+
+Math support is optional.
 
 ```powershell
 pip install "utterwise[math]"
 ```
 
-Fast deterministic rules still handle common fragments:
+Even without the optional parser, deterministic rules handle many common
+expressions.
 
-| Input | Output |
-| --- | --- |
+| Input | Spoken Output |
+|---------|--------------|
 | `x^2` | `x squared` |
 | `a/b` | `a over b` |
 | `(x+1)^2` | `open parenthesis x plus one close parenthesis squared` |
@@ -241,11 +341,15 @@ Fast deterministic rules still handle common fragments:
 | `\sqrt{x+1}` | `square root of x plus one` |
 | `\sum_{i=1}^{n} i` | `sum from i equals one to n of i` |
 
-## Test String
+<a id="test-string"></a>
 
-Here is one compact sample that touches most of the current normalizers:
+## 🧪 Test String
+
+A single sample that exercises most current normalizers:
 
 ```python
+from utterwise import normalize
+
 sample = (
     "Born in 1998, call 911 immediately, Flight 911 departs at 6, "
     "Python 3.12 supports x^2, a/b, (x+1)^2, \\frac{a+b}{c}, "
@@ -256,3 +360,5 @@ sample = (
 
 print(normalize(sample))
 ```
+
+This is useful for smoke testing, demos, benchmarks, and regression checks.
