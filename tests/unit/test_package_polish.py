@@ -19,6 +19,53 @@ def test_currency_tokenization_detection_and_explain() -> None:
     assert token["type"] == "CURRENCY"
     assert token["rule"] == "currency_exact"
     assert token["spoken"] == "twelve dollars and fifty cents"
+    assert token["metadata"]["currency_code"] == "USD"
+
+
+def test_expanded_currency_symbols_and_codes() -> None:
+    cases = {
+        "₹500": "five hundred rupees",
+        "¥12.50": "twelve point five zero yen",
+        "₩12.50": "twelve point five zero won",
+        "₫12.50": "twelve point five zero dong",
+        "INR 12.25": "twelve rupees and twenty five paise",
+        "12.50 USD": "twelve dollars and fifty cents",
+        "RMB 45": "forty five yuan",
+    }
+
+    for raw, spoken in cases.items():
+        assert normalize(raw) == spoken
+
+
+def test_brazilian_real_symbol_is_one_currency_token() -> None:
+    text = "R$25.50"
+    tokens = tokenize(preprocess(text))
+    trace = explain(text)
+    token = trace["tokens"][0]
+
+    assert [(token.type, token.value) for token in tokens] == [("CURRENCY", "R$25.50")]
+    assert normalize(text) == "twenty five Brazilian reais and fifty centavos"
+    assert token["type"] == "CURRENCY"
+    assert token["rule"] == "currency_exact"
+    assert token["metadata"]["currency_code"] == "BRL"
+    assert token["metadata"]["currency_display"] == "R$"
+
+
+def test_currency_detector_for_iso_code_forms() -> None:
+    text = "USD 12.50"
+    tokens = tokenize(preprocess(text))
+    flags = detect(text, tokens)
+
+    assert [(token.type, token.value) for token in tokens] == [("CURRENCY", "USD 12.50")]
+    assert flags.currency is True
+
+
+def test_expanded_currency_can_be_disabled() -> None:
+    config = NormalizeConfig(enable_currency=False)
+
+    assert normalize("₹500", config=config) != "five hundred rupees"
+    assert normalize("USD 12.50", config=config) != "twelve dollars and fifty cents"
+    assert normalize("R$25.50", config=config) != "twenty five Brazilian reais and fifty centavos"
 
 
 def test_date_tokenization_detection_and_explain() -> None:

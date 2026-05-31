@@ -7,9 +7,9 @@ from typing import Any
 from utterwise.config import NormalizeConfig
 from utterwise.math import find_math_spans
 from utterwise.tokens import Token
+from utterwise.utils.currency import find_currency_spans
 
 
-CURRENCY_RE = re.compile(r"[$€£]\s?\d+(?:,\d{3})*(?:\.\d{1,2})?")
 DATE_RE = re.compile(
     r"""
     \b\d{4}-\d{1,2}-\d{1,2}\b
@@ -127,7 +127,10 @@ def _semantic_spans(text: str, config: NormalizeConfig) -> list[tuple[str, int, 
             for start, end, metadata in _find_invalid_date_spans(text, config)
         )
     if config.enable_currency:
-        spans.extend(("CURRENCY", start, end, 90, {}) for start, end in _find_regex_spans(CURRENCY_RE, text))
+        spans.extend(
+            ("CURRENCY", start, end, 90, metadata)
+            for start, end, metadata in find_currency_spans(text)
+        )
     if config.enable_temperature:
         spans.extend(("TEMPERATURE", start, end, 80, {}) for start, end in _find_temperature_spans(text))
     if config.enable_math:

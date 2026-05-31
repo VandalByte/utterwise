@@ -6,6 +6,7 @@ from urllib.parse import urlparse
 from utterwise.math import verbalize_math
 from utterwise.policies.base import Policy
 from utterwise.tokens import SpokenSegment, Token
+from utterwise.utils.currency import currency_metadata
 from utterwise.verbalizers.numbers import (
     cardinal_to_words,
     decimal_to_words,
@@ -24,12 +25,6 @@ SYMBOLS = {
     "=": "equals",
     "×": "times",
     "÷": "divided by",
-}
-
-CURRENCY_UNITS = {
-    "$": ("dollar", "dollars", "cent", "cents"),
-    "€": ("euro", "euros", "cent", "cents"),
-    "£": ("pound", "pounds", "penny", "pence"),
 }
 
 MONTH_ALIASES = {
@@ -100,7 +95,7 @@ def _verbalize_one(token: Token, policy: Policy) -> SpokenSegment:
     if token.type == "DATE":
         return _segment(token, _date_to_words(token.value, token.metadata), token)
     if token.type == "CURRENCY":
-        return _segment(token, _currency_to_words(token.value), token)
+        return _segment(token, _currency_to_words(token.value, token.metadata), token)
     if token.type == "TEMPERATURE":
         return _segment(token, _temperature_to_words(token.value), token)
     if token.type == "CARDINAL":
@@ -178,21 +173,31 @@ def _flight_no_to_words(value: str) -> str:
     return digits_to_words(value)
 
 
-def _currency_to_words(value: str) -> str:
-    match = re.fullmatch(r"\s*([$€£])\s?(\d+(?:,\d{3})*)(?:\.(\d{1,2}))?\s*", value)
-    if not match:
+def _currency_to_words(value: str, metadata: dict | None = None) -> str:
+    details = metadata if metadata and metadata.get("currency_code") else currency_metadata(value)
+    if not details:
         return value
 
-    symbol, whole, cents = match.groups()
-    singular, plural, cent_singular, cent_plural = CURRENCY_UNITS[symbol]
-    amount = int(whole.replace(",", ""))
+    whole = str(details["currency_whole"])
+    fraction = str(details.get("currency_fraction") or "")
+    amount = int(whole)
+    singular = str(details["currency_major_singular"])
+    plural = str(details["currency_major_plural"])
     unit = singular if amount == 1 else plural
     words = f"{cardinal_to_words(str(amount))} {unit}"
 
-    if cents is not None and int(cents) > 0:
-        cent_value = int(cents.ljust(2, "0"))
-        cent_unit = cent_singular if cent_value == 1 else cent_plural
-        words = f"{words} and {cardinal_to_words(str(cent_value))} {cent_unit}"
+    if fraction and int(fraction) > 0:
+        if details.get("currency_decimal_mode") == "point":
+            return f"{cardinal_to_words(str(amount))} point {digits_to_words(fraction)} {unit}"
+
+        minor_singular = details.get("currency_minor_singular")
+        minor_plural = details.get("currency_minor_plural")
+        if not minor_singular or not minor_plural:
+            return f"{cardinal_to_words(str(amount))} point {digits_to_words(fraction)} {unit}"
+
+        minor_value = int(fraction.ljust(2, "0"))
+        minor_unit = minor_singular if minor_value == 1 else minor_plural
+        words = f"{words} and {cardinal_to_words(str(minor_value))} {minor_unit}"
     return words
 
 

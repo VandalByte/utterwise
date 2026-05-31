@@ -190,6 +190,86 @@
     "plain": "nine pounds and ninety nine pence"
   },
   {
+    "name": "currency_rupees",
+    "input": "₹500",
+    "plain": "five hundred rupees"
+  },
+  {
+    "name": "currency_yen",
+    "input": "¥1200",
+    "plain": "one thousand two hundred yen"
+  },
+  {
+    "name": "currency_won",
+    "input": "₩5000",
+    "plain": "five thousand won"
+  },
+  {
+    "name": "currency_rubles",
+    "input": "₽75",
+    "plain": "seventy five rubles"
+  },
+  {
+    "name": "currency_turkish_lira",
+    "input": "₺40",
+    "plain": "forty Turkish lira"
+  },
+  {
+    "name": "currency_naira",
+    "input": "₦2500",
+    "plain": "two thousand five hundred naira"
+  },
+  {
+    "name": "currency_philippine_pesos",
+    "input": "₱99",
+    "plain": "ninety nine pesos"
+  },
+  {
+    "name": "currency_baht",
+    "input": "฿60",
+    "plain": "sixty baht"
+  },
+  {
+    "name": "currency_dong",
+    "input": "₫10000",
+    "plain": "ten thousand dong"
+  },
+  {
+    "name": "currency_brazilian_reais",
+    "input": "R$25.50",
+    "plain": "twenty five Brazilian reais and fifty centavos"
+  },
+  {
+    "name": "currency_usd_code_prefix",
+    "input": "USD 12.50",
+    "plain": "twelve dollars and fifty cents"
+  },
+  {
+    "name": "currency_usd_code_suffix",
+    "input": "12.50 USD",
+    "plain": "twelve dollars and fifty cents"
+  },
+  {
+    "name": "currency_inr_code_minor",
+    "input": "INR 12.25",
+    "plain": "twelve rupees and twenty five paise"
+  },
+  {
+    "name": "currency_jpy_code",
+    "input": "JPY 1200",
+    "plain": "one thousand two hundred yen"
+  },
+  {
+    "name": "currency_cny_code",
+    "input": "CNY 45",
+    "plain": "forty five yuan"
+  },
+  {
+    "name": "currency_brl_code_minor",
+    "input": "BRL 25.50",
+    "plain": "twenty five Brazilian reais and fifty centavos"
+  },
+  {
     "name": "date_month_name_short",
     "input": "Jan 3, 2026",
     "plain": "January third twenty twenty six"
